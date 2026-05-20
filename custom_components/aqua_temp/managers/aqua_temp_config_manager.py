@@ -394,12 +394,20 @@ class AquaTempConfigManager:
             translation_key = f"{product_id}_{key}".replace("/", "").lower()
 
             if platform == Platform.SENSOR:
+                raw_entity_category = data_item.get("entity_category", "diagnostic")
+                entity_category = (
+                    EntityCategory.DIAGNOSTIC
+                    if raw_entity_category == "diagnostic"
+                    else None
+                )
+
                 sensor_entity = AquaTempSensorEntityDescription(
                     key=key,
                     name=data_item.get("name"),
                     device_class=data_item.get("device_class"),
                     native_unit_of_measurement=data_item.get("unit_of_measurement"),
-                    entity_category=EntityCategory.DIAGNOSTIC,
+                    state_class=data_item.get("state_class"),
+                    entity_category=entity_category,
                     translation_key=translation_key,
                 )
 

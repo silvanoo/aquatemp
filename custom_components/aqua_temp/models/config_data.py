@@ -1,3 +1,5 @@
+import re
+
 import voluptuous as vol
 from voluptuous import Schema
 
@@ -7,7 +9,7 @@ from homeassistant.helpers import selector
 from ..common.api_types import API_TYPE_LEGACY, API_TYPES, APIType
 from ..common.consts import CONF_API_TYPE, CONF_TITLE, DEFAULT_NAME
 
-DATA_KEYS = [CONF_USERNAME, CONF_PASSWORD]
+DATA_KEYS = [CONF_USERNAME, CONF_PASSWORD, CONF_API_TYPE]
 
 
 class ConfigData:
@@ -42,12 +44,21 @@ class ConfigData:
         self._password = data.get(CONF_PASSWORD)
         self._username = data.get(CONF_USERNAME)
 
-        api_type = data.get(CONF_API_TYPE, str(APIType.AquaTempOld))
+        api_type = data.get(CONF_API_TYPE, str(APIType.AquaTemp))
 
         if api_type in API_TYPE_LEGACY:
             api_type = str(API_TYPE_LEGACY.get(api_type))
 
         self._api_type = api_type
+
+    @staticmethod
+    def validate_password(password: str) -> bool:
+        if not (8 <= len(password) <= 16):
+            return False
+        has_digits = bool(re.search(r"\d", password))
+        has_letters = bool(re.search(r"[a-zA-Z]", password))
+        has_special = bool(re.search(r"[^a-zA-Z0-9]", password))
+        return sum([has_digits, has_letters, has_special]) >= 2
 
     def to_dict(self):
         obj = {

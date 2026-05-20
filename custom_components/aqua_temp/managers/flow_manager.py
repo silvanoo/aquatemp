@@ -11,6 +11,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowHandler
 
+from homeassistant.const import CONF_PASSWORD
+
 from ..common.consts import CONF_TITLE, DEFAULT_NAME
 from ..models.config_data import DATA_KEYS, ConfigData
 from ..models.exceptions import LoginError
@@ -61,40 +63,47 @@ class IntegrationFlowManager:
                 )
 
         else:
-            try:
-                await self._config_manager.initialize(user_input)
+            error_key = None
 
-                api = AquaTempAPI(self._hass, self._config_manager)
+            password = user_input.get(CONF_PASSWORD, "")
+            if not ConfigData.validate_password(password):
+                error_key = "invalid_password"
+                form_errors = {"password": error_key}
+            else:
+                try:
+                    await self._config_manager.initialize(user_input)
 
-                await api.initialize(True)
+                    api = AquaTempAPI(self._hass, self._config_manager)
 
-                _LOGGER.debug("User inputs are valid")
+                    await api.initialize(True)
 
-                if self._entry is None:
-                    data = copy(user_input)
+                    _LOGGER.debug("User inputs are valid")
 
-                else:
-                    data = await self.remap_entry_data(user_input)
+                    if self._entry is None:
+                        data = copy(user_input)
 
-                await PasswordManager.encrypt(self._hass, data)
+                    else:
+                        data = await self.remap_entry_data(user_input)
 
-                title = data.get(CONF_TITLE, DEFAULT_NAME)
+                    await PasswordManager.encrypt(self._hass, data)
 
-                if CONF_TITLE in data:
-                    data.pop(CONF_TITLE)
+                    title = data.get(CONF_TITLE, DEFAULT_NAME)
 
-                return self._flow_handler.async_create_entry(title=title, data=data)
+                    if CONF_TITLE in data:
+                        data.pop(CONF_TITLE)
 
-            except LoginError:
-                error_key = "invalid_credentials"
+                    return self._flow_handler.async_create_entry(title=title, data=data)
 
-            except InvalidToken:
-                error_key = "corrupted_encryption_key"
+                except LoginError:
+                    error_key = "invalid_credentials"
 
-            if error_key is not None:
-                form_errors = {"base": error_key}
+                except InvalidToken:
+                    error_key = "corrupted_encryption_key"
 
-                _LOGGER.warning(f"Failed to create integration, Error Key: {error_key}")
+                if error_key is not None:
+                    form_errors = {"base": error_key}
+
+                    _LOGGER.warning(f"Failed to create integration, Error Key: {error_key}")
 
         schema = ConfigData.default_schema(user_input)
 

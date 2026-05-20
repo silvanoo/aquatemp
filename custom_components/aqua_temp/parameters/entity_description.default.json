@@ -52,6 +52,20 @@
     "platform": null
   },
   {
+    "key": "2055",
+    "name": "Real Power Value",
+    "platform": "sensor",
+    "device_class": "power",
+    "unit_of_measurement": "kW"
+  },
+  {
+    "key": "2057",
+    "name": "Total Power Value (24h)",
+    "platform": "sensor",
+    "device_class": "energy",
+    "unit_of_measurement": "kWh"
+  },
+  {
     "key": "2064",
     "name": "2064",
     "platform": null

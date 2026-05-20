@@ -14,7 +14,8 @@
     },
     "error": {
       "invalid_credentials": "Invalid credentials",
-      "corrupted_encryption_key": "Corrupted encryption key, please follow steps in https://github.com/radical-squared/aquatemp#invalid-token"
+      "corrupted_encryption_key": "Corrupted encryption key, please follow steps in https://github.com/radical-squared/aquatemp#invalid-token",
+      "invalid_password": "Password must be 8-16 characters and contain at least 2 of: letters, digits, special characters"
     }
   },
   "options": {
@@ -32,7 +33,8 @@
     },
     "error": {
       "invalid_credentials": "Invalid credentials",
-      "corrupted_encryption_key": "Corrupted encryption key, please follow steps in https://github.com/radical-squared/aquatemp#invalid-token"
+      "corrupted_encryption_key": "Corrupted encryption key, please follow steps in https://github.com/radical-squared/aquatemp#invalid-token",
+      "invalid_password": "Password must be 8-16 characters and contain at least 2 of: letters, digits, special characters"
     }
   },
   "selector": {
@@ -96,6 +98,12 @@
       },
       "default_1159": {
         "name": "1159"
+      },
+      "default_2055": {
+        "name": "Real Power Value"
+      },
+      "default_2057": {
+        "name": "Total Power Value (24h)"
       },
       "default_2064": {
         "name": "2064"

@@ -1,9 +1,11 @@
 import logging
+from datetime import datetime, time
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .common.base_entity import BaseEntity, async_setup_base_entry
 from .common.entity_descriptions import AquaTempSensorEntityDescription
@@ -45,6 +47,12 @@ class AquaTempSensorEntity(BaseEntity, SensorEntity):
                 device_code
             )
 
+        if entity_description.state_class == SensorStateClass.TOTAL_INCREASING:
+            now = dt_util.now()
+            self._attr_last_reset = datetime.combine(now.date(), time.min).astimezone(
+                now.tzinfo
+            )
+
     def _handle_coordinator_update(self) -> None:
         """Fetch new state parameters for the sensor."""
         device_data = self.local_coordinator.get_device_data(self.device_code)
@@ -52,7 +60,25 @@ class AquaTempSensorEntity(BaseEntity, SensorEntity):
         state = device_data.get(self.entity_description.key)
 
         if isinstance(state, str):
-            state = float(state)
+            try:
+                state = float(state)
+            except (ValueError, TypeError):
+                state = None
+
+        if isinstance(state, (int, float)) and state < 0:
+            _LOGGER.warning(
+                f"Ignoring negative value {state} for sensor {self.entity_description.key}"
+            )
+            state = None
+
+        if (
+            self.entity_description.state_class == SensorStateClass.TOTAL_INCREASING
+            and isinstance(state, (int, float))
+        ):
+            now = dt_util.now()
+            self._attr_last_reset = datetime.combine(now.date(), time.min).astimezone(
+                now.tzinfo
+            )
 
         self._attr_native_value = state
 
